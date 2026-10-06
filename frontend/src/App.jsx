@@ -11,7 +11,8 @@ const handleLogin = (e) => {
     setLoginError("Please enter email and password.");
   }
 };
-const API_URL = "http://localhost:5000/api/employees";
+const API_URL =
+  "https://gupio-employee-management-system.onrender.com/api/employees";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
