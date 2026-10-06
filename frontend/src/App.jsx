@@ -1,29 +1,9 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-const handleLogin = (e) => {
-  e.preventDefault();
 
-  if (loginForm.email.trim() && loginForm.password.trim()) {
-    setIsLoggedIn(true);
-    setLoginError("");
-    setActivePage("Dashboard");
-  } else {
-    setLoginError("Please enter email and password.");
-  }
-};
-const API_URL =
-  "https://gupio-employee-management-system.onrender.com/api/employees";
+const API_URL = "http://localhost:5000/api/employees";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const [loginForm, setLoginForm] = useState({
-    email: "",
-    password: ""
-  });
-
-  const [loginError, setLoginError] = useState("");
-
   const [employees, setEmployees] = useState([]);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
@@ -40,28 +20,7 @@ function App() {
 
   const [editingId, setEditingId] = useState(null);
 
-  // LOGIN
-  const handleLogin = (e) => {
-    e.preventDefault();
-
-    if (!loginForm.email || !loginForm.password) {
-      setLoginError("Please enter email and password.");
-      return;
-    }
-
-    // Demo login for the placement project
-    if (
-      loginForm.email === "admin@gupio.com" &&
-      loginForm.password === "admin123"
-    ) {
-      setIsLoggedIn(true);
-      setLoginError("");
-      return;
-    }
-
-    setLoginError("Invalid email or password.");
-  };
-
+  // FETCH EMPLOYEES
   const fetchEmployees = async () => {
     try {
       setLoading(true);
@@ -76,17 +35,17 @@ function App() {
       setEmployees(data);
     } catch (error) {
       console.error(error);
+      alert("Unable to connect to backend.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchEmployees();
-    }
-  }, [isLoggedIn]);
+    fetchEmployees();
+  }, []);
 
+  // FORM CHANGE
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -94,6 +53,7 @@ function App() {
     });
   };
 
+  // RESET FORM
   const resetForm = () => {
     setForm({
       name: "",
@@ -105,6 +65,7 @@ function App() {
     setEditingId(null);
   };
 
+  // CREATE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -150,10 +111,12 @@ function App() {
       await fetchEmployees();
       setActivePage("Employees");
     } catch (error) {
+      console.error(error);
       alert("Unable to connect to backend.");
     }
   };
 
+  // EDIT
   const handleEdit = (employee) => {
     setForm({
       name: employee.name,
@@ -166,6 +129,7 @@ function App() {
     setActivePage("Add Employee");
   };
 
+  // DELETE
   const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this employee?"
@@ -188,16 +152,21 @@ function App() {
       alert("Employee deleted successfully!");
 
       setSelectedEmployee(null);
-      fetchEmployees();
+      await fetchEmployees();
     } catch (error) {
+      console.error(error);
       alert("Unable to connect to backend.");
     }
   };
 
+  // DEPARTMENTS
   const departments = [
-    ...new Set(employees.map((employee) => employee.department))
+    ...new Set(
+      employees.map((employee) => employee.department)
+    )
   ];
 
+  // FILTER
   const filteredEmployees = employees.filter((employee) => {
     const searchText = search.toLowerCase();
 
@@ -212,107 +181,13 @@ function App() {
     return matchesSearch && matchesDepartment;
   });
 
+  // RECENT EMPLOYEES
   const recentEmployees = [...employees]
     .sort(
       (a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
     )
     .slice(0, 5);
-
-  // LOGIN PAGE
-  if (!isLoggedIn) {
-    return (
-      <div className="login-page">
-
-        <div className="login-brand">
-          <div className="login-logo">G</div>
-
-          <h1>GUPIO</h1>
-
-          <p>Employee Management System</p>
-        </div>
-
-        <div className="login-card">
-
-          <div className="login-header">
-            <h2>Welcome back</h2>
-
-            <p>
-              Sign in to access your HR workspace
-            </p>
-          </div>
-
-         <form
-  onSubmit={(e) => {
-    e.preventDefault();
-    setIsLoggedIn(true);
-    setLoginError("");
-    setActivePage("Dashboard");
-  }}
->
-
-            <div className="input-group">
-              <label>EMAIL ADDRESS</label>
-
-              <input
-                type="email"
-                placeholder="admin@gupio.com"
-                value={loginForm.email}
-                onChange={(e) =>
-                  setLoginForm({
-                    ...loginForm,
-                    email: e.target.value
-                  })
-                }
-              />
-            </div>
-
-            <div className="input-group">
-              <label>PASSWORD</label>
-
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={loginForm.password}
-                onChange={(e) =>
-                  setLoginForm({
-                    ...loginForm,
-                    password: e.target.value
-                  })
-                }
-              />
-            </div>
-
-            {loginError && (
-              <div className="login-error">
-                {loginError}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="login-btn"
-            >
-              Sign In
-            </button>
-
-          </form>
-
-          <div className="demo-login">
-            <span>Demo credentials</span>
-            <strong>admin@gupio.com</strong>
-            <small>Password: admin123</small>
-          </div>
-
-        </div>
-
-        <p className="login-footer">
-          © 2026 GUPIO · Secure HR Workspace
-        </p>
-
-      </div>
-    );
-  }
 
   return (
     <div className="app">
@@ -394,19 +269,6 @@ function App() {
 
           </div>
 
-          <button
-            className="logout-btn"
-            onClick={() => {
-              setIsLoggedIn(false);
-              setLoginForm({
-                email: "",
-                password: ""
-              });
-            }}
-          >
-            ↪ Logout
-          </button>
-
         </div>
 
       </aside>
@@ -414,6 +276,7 @@ function App() {
       {/* MAIN AREA */}
       <div className="main-area">
 
+        {/* TOPBAR */}
         <header className="topbar">
 
           <div className="breadcrumb">
@@ -442,6 +305,7 @@ function App() {
           {/* DASHBOARD */}
           {activePage === "Dashboard" && (
             <>
+
               <section className="welcome-section">
 
                 <div>
@@ -470,10 +334,13 @@ function App() {
 
               </section>
 
+              {/* STATS */}
               <section className="stats-grid">
 
                 <div className="stat-card">
+
                   <div className="stat-top">
+
                     <span className="stat-label">
                       TOTAL EMPLOYEES
                     </span>
@@ -481,6 +348,7 @@ function App() {
                     <div className="stat-icon blue">
                       ♙
                     </div>
+
                   </div>
 
                   <div className="stat-number">
@@ -490,10 +358,13 @@ function App() {
                   <div className="stat-footer">
                     Active employee records
                   </div>
+
                 </div>
 
                 <div className="stat-card">
+
                   <div className="stat-top">
+
                     <span className="stat-label">
                       DEPARTMENTS
                     </span>
@@ -501,6 +372,7 @@ function App() {
                     <div className="stat-icon purple">
                       ▦
                     </div>
+
                   </div>
 
                   <div className="stat-number">
@@ -510,10 +382,13 @@ function App() {
                   <div className="stat-footer">
                     Across organization
                   </div>
+
                 </div>
 
                 <div className="stat-card">
+
                   <div className="stat-top">
+
                     <span className="stat-label">
                       RECENT RECORDS
                     </span>
@@ -521,6 +396,7 @@ function App() {
                     <div className="stat-icon green">
                       ✓
                     </div>
+
                   </div>
 
                   <div className="stat-number">
@@ -530,10 +406,12 @@ function App() {
                   <div className="stat-footer">
                     Latest employees
                   </div>
+
                 </div>
 
               </section>
 
+              {/* DASHBOARD PANELS */}
               <section className="dashboard-grid">
 
                 <div className="panel">
@@ -557,16 +435,21 @@ function App() {
                   </div>
 
                   {recentEmployees.length === 0 ? (
+
                     <div className="empty-state">
                       <strong>No employees yet</strong>
+
                       <p>
                         Add your first employee to get started.
                       </p>
                     </div>
+
                   ) : (
+
                     <div className="recent-list">
 
                       {recentEmployees.map((employee) => (
+
                         <div
                           className="recent-item"
                           key={employee._id}
@@ -579,6 +462,7 @@ function App() {
                           </div>
 
                           <div className="recent-info">
+
                             <strong>
                               {employee.name}
                             </strong>
@@ -586,6 +470,7 @@ function App() {
                             <span>
                               {employee.designation}
                             </span>
+
                           </div>
 
                           <span className="department-badge">
@@ -602,20 +487,25 @@ function App() {
                           </button>
 
                         </div>
+
                       ))}
 
                     </div>
+
                   )}
 
                 </div>
 
+                {/* QUICK ACTIONS */}
                 <div className="panel quick-panel">
 
                   <div className="panel-header">
+
                     <div>
                       <h3>Quick Actions</h3>
                       <p>Manage your workspace</p>
                     </div>
+
                   </div>
 
                   <button
@@ -625,18 +515,21 @@ function App() {
                       setActivePage("Add Employee");
                     }}
                   >
+
                     <div className="quick-icon blue">
                       ＋
                     </div>
 
                     <div>
                       <strong>Add Employee</strong>
+
                       <span>
                         Create a new employee record
                       </span>
                     </div>
 
                     <b>→</b>
+
                   </button>
 
                   <button
@@ -645,33 +538,39 @@ function App() {
                       setActivePage("Employees")
                     }
                   >
+
                     <div className="quick-icon purple">
                       ♙
                     </div>
 
                     <div>
                       <strong>View Employees</strong>
+
                       <span>
                         Manage employee records
                       </span>
                     </div>
 
                     <b>→</b>
+
                   </button>
 
                 </div>
 
               </section>
+
             </>
           )}
 
-          {/* ADD / EDIT */}
+          {/* ADD / EDIT EMPLOYEE */}
           {activePage === "Add Employee" && (
+
             <section>
 
               <div className="page-heading">
 
                 <div>
+
                   <p className="eyebrow">
                     EMPLOYEE MANAGEMENT
                   </p>
@@ -687,6 +586,7 @@ function App() {
                       ? "Update employee information below."
                       : "Create a new employee record."}
                   </p>
+
                 </div>
 
               </div>
@@ -700,6 +600,7 @@ function App() {
                   </div>
 
                   <div>
+
                     <h3>
                       Employee Information
                     </h3>
@@ -707,6 +608,7 @@ function App() {
                     <p>
                       Enter the employee's details accurately.
                     </p>
+
                   </div>
 
                 </div>
@@ -716,6 +618,7 @@ function App() {
                   <div className="form-grid">
 
                     <div className="input-group">
+
                       <label>FULL NAME</label>
 
                       <input
@@ -725,9 +628,11 @@ function App() {
                         value={form.name}
                         onChange={handleChange}
                       />
+
                     </div>
 
                     <div className="input-group">
+
                       <label>EMAIL ADDRESS</label>
 
                       <input
@@ -737,9 +642,11 @@ function App() {
                         value={form.email}
                         onChange={handleChange}
                       />
+
                     </div>
 
                     <div className="input-group">
+
                       <label>DEPARTMENT</label>
 
                       <input
@@ -749,9 +656,11 @@ function App() {
                         value={form.department}
                         onChange={handleChange}
                       />
+
                     </div>
 
                     <div className="input-group">
+
                       <label>DESIGNATION</label>
 
                       <input
@@ -761,6 +670,7 @@ function App() {
                         value={form.designation}
                         onChange={handleChange}
                       />
+
                     </div>
 
                   </div>
@@ -794,15 +704,18 @@ function App() {
               </div>
 
             </section>
+
           )}
 
           {/* EMPLOYEES */}
           {activePage === "Employees" && (
+
             <section>
 
               <div className="page-heading employee-heading">
 
                 <div>
+
                   <p className="eyebrow">
                     DIRECTORY
                   </p>
@@ -812,6 +725,7 @@ function App() {
                   <p>
                     Manage all employee records in one place.
                   </p>
+
                 </div>
 
                 <button
@@ -831,15 +745,19 @@ function App() {
                 <div className="employee-toolbar">
 
                   <div>
+
                     <h3>All Employees</h3>
+
                     <span>
                       {filteredEmployees.length} records
                     </span>
+
                   </div>
 
                   <div className="filters">
 
                     <div className="search-box">
+
                       <span>⌕</span>
 
                       <input
@@ -850,6 +768,7 @@ function App() {
                           setSearch(e.target.value)
                         }
                       />
+
                     </div>
 
                     <select
@@ -858,17 +777,20 @@ function App() {
                         setDepartment(e.target.value)
                       }
                     >
+
                       <option value="">
                         All Departments
                       </option>
 
                       {departments.map((dept) => (
+
                         <option
                           key={dept}
                           value={dept}
                         >
                           {dept}
                         </option>
+
                       ))}
 
                     </select>
@@ -878,28 +800,39 @@ function App() {
                 </div>
 
                 {loading && (
+
                   <div className="message">
                     Loading employees...
                   </div>
+
                 )}
 
                 {!loading &&
                   filteredEmployees.length === 0 && (
+
                     <div className="empty-state">
-                      <strong>No employees found</strong>
+
+                      <strong>
+                        No employees found
+                      </strong>
+
                       <p>
                         Try changing your search or add a new employee.
                       </p>
+
                     </div>
+
                   )}
 
                 {!loading &&
                   filteredEmployees.length > 0 && (
+
                     <div className="table-wrapper">
 
                       <table>
 
                         <thead>
+
                           <tr>
                             <th>EMPLOYEE</th>
                             <th>EMAIL</th>
@@ -907,14 +840,17 @@ function App() {
                             <th>DESIGNATION</th>
                             <th>ACTIONS</th>
                           </tr>
+
                         </thead>
 
                         <tbody>
 
                           {filteredEmployees.map((employee) => (
+
                             <tr key={employee._id}>
 
                               <td>
+
                                 <div className="table-name">
 
                                   <div className="small-avatar">
@@ -928,6 +864,7 @@ function App() {
                                   </strong>
 
                                 </div>
+
                               </td>
 
                               <td>
@@ -935,9 +872,11 @@ function App() {
                               </td>
 
                               <td>
+
                                 <span className="department-badge">
                                   {employee.department}
                                 </span>
+
                               </td>
 
                               <td>
@@ -982,6 +921,7 @@ function App() {
                               </td>
 
                             </tr>
+
                           ))}
 
                         </tbody>
@@ -989,19 +929,22 @@ function App() {
                       </table>
 
                     </div>
+
                   )}
 
               </div>
 
             </section>
+
           )}
 
         </main>
 
       </div>
 
-      {/* MODAL */}
+      {/* EMPLOYEE DETAILS MODAL */}
       {selectedEmployee && (
+
         <div
           className="modal-overlay"
           onClick={() =>
@@ -1043,6 +986,7 @@ function App() {
 
               <div>
                 <span>Email</span>
+
                 <strong>
                   {selectedEmployee.email}
                 </strong>
@@ -1050,6 +994,7 @@ function App() {
 
               <div>
                 <span>Department</span>
+
                 <strong>
                   {selectedEmployee.department}
                 </strong>
@@ -1057,6 +1002,7 @@ function App() {
 
               <div>
                 <span>Designation</span>
+
                 <strong>
                   {selectedEmployee.designation}
                 </strong>
@@ -1077,6 +1023,7 @@ function App() {
           </div>
 
         </div>
+
       )}
 
     </div>
