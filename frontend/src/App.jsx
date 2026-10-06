@@ -33,10 +33,10 @@ function App() {
 
       const data = await response.json();
       setEmployees(data);
-    }  catch (error) {
-  console.error("CREATE EMPLOYEE ERROR:", error);
-  alert("Create failed: " + error.message);
-} finally {
+    } catch (error) {
+      console.error("FETCH EMPLOYEES ERROR:", error);
+      alert("Unable to fetch employees: " + error.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -89,7 +89,8 @@ function App() {
       const response = await fetch(url, {
         method,
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
         body: JSON.stringify(form)
       });
@@ -111,8 +112,8 @@ function App() {
       await fetchEmployees();
       setActivePage("Employees");
     } catch (error) {
-      console.error(error);
-      alert("Unable to connect to backend.");
+      console.error("CREATE EMPLOYEE ERROR:", error);
+      alert("Create failed: " + error.message);
     }
   };
 
@@ -154,8 +155,8 @@ function App() {
       setSelectedEmployee(null);
       await fetchEmployees();
     } catch (error) {
-      console.error(error);
-      alert("Unable to connect to backend.");
+      console.error("DELETE EMPLOYEE ERROR:", error);
+      alert("Delete failed: " + error.message);
     }
   };
 
@@ -908,9 +909,7 @@ function App() {
                                   <button
                                     className="table-action delete"
                                     onClick={() =>
-                                      handleDelete(
-                                        employee._id
-                                      )
+                                      handleDelete(employee._id)
                                     }
                                   >
                                     Delete
