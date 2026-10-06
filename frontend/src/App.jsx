@@ -33,10 +33,10 @@ function App() {
 
       const data = await response.json();
       setEmployees(data);
-    } catch (error) {
-      console.error(error);
-      alert("Unable to connect to backend.");
-    } finally {
+    }  catch (error) {
+  console.error("CREATE EMPLOYEE ERROR:", error);
+  alert("Create failed: " + error.message);
+} finally {
       setLoading(false);
     }
   };
